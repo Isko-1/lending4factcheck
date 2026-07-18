@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Разбор манипуляций — проверка фактов на любой странице</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #101423;
+    --paper: #F7F5EF;
+    --paper-dim: #EDE9DD;
+    --line: #D8D2C2;
+    --slate: #5B5F70;
+    --false: #C4451C;
+    --false-bg: #FBE7DC;
+    --verified: #1F6E5C;
+    --verified-bg: #DCEEE6;
+    --stamp: #B0341E;
+    --max-w: 1040px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.001s !important; }
+  }
+
+  h1, h2, h3 { font-family: 'Newsreader', serif; margin: 0; }
+  a { color: inherit; }
+
+  .wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  nav.wrap {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 24px; padding-bottom: 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--ink); color: var(--paper);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  nav a.cta-small {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--ink); padding: 8px 16px; border-radius: 999px;
+    text-decoration: none; white-space: nowrap;
+  }
+
+  /* ---------- HERO ---------- */
+  header.hero { padding: 40px 0 80px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--stamp); font-weight: 600; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .eyebrow::before { content: ""; width: 18px; height: 1px; background: var(--stamp); display: inline-block; }
+
+  .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+  @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+  h1.headline {
+    font-size: clamp(38px, 5vw, 58px);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+  h1.headline em { font-style: italic; color: var(--stamp); }
+
+  .sub {
+    margin-top: 22px; font-size: 18px; color: var(--slate); max-width: 46ch;
+  }
+
+  .cta-row { display: flex; gap: 14px; margin-top: 32px; flex-wrap: wrap; }
+  .btn-primary {
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px;
+    background: var(--ink); color: var(--paper); text-decoration: none;
+    padding: 15px 26px; border-radius: 999px; display: inline-flex; align-items: center; gap: 10px;
+    transition: transform 0.15s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-secondary {
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px;
+    color: var(--ink); text-decoration: none;
+    padding: 15px 8px; display: inline-flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  /* ---------- DOCUMENT SCAN VISUAL ---------- */
+  .doc-card {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 26px 24px; position: relative; overflow: hidden;
+    box-shadow: 0 24px 48px -24px rgba(16, 20, 35, 0.28);
+  }
+  .doc-card::before {
+    content: "";
+    position: absolute; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--stamp), transparent);
+    animation: scan 3.2s ease-in-out infinite;
+    opacity: 0.9;
+  }
+  @keyframes scan {
+    0% { top: 6%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 92%; opacity: 0; }
+  }
+  .doc-source {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--slate);
+    display: flex; justify-content: space-between; margin-bottom: 16px; letter-spacing: 0.02em;
+  }
+  .doc-body { font-size: 15.5px; line-height: 1.75; color: #232633; }
+  .doc-body .flag {
+    background: var(--false-bg); color: var(--false); border-radius: 3px; padding: 1px 3px;
+    box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  }
+  .doc-verdict {
+    margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .stamp-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+    color: var(--false); border: 1.5px solid var(--false); border-radius: 6px;
+    padding: 4px 8px; letter-spacing: 0.03em; transform: rotate(-3deg); white-space: nowrap;
+  }
+  .doc-verdict p { margin: 0; font-size: 13.5px; color: var(--slate); }
+
+  /* ---------- SECTION SHARED ---------- */
+  section { padding: 72px 0; border-top: 1px solid var(--line); }
+  .section-head { max-width: 640px; margin-bottom: 48px; }
+  .section-head .eyebrow { margin-bottom: 14px; }
+  .section-head h2 { font-size: clamp(28px, 3.4vw, 36px); font-weight: 500; letter-spacing: -0.01em; }
+  .section-head p { color: var(--slate); font-size: 16.5px; margin-top: 14px; }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--stamp); font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .step h3 { font-size: 20px; font-weight: 500; margin-bottom: 10px; }
+  .step p { color: var(--slate); font-size: 15px; margin: 0; }
+
+  /* ---------- INSTALL ---------- */
+  .install-panel {
+    background: var(--ink); color: var(--paper); border-radius: 18px; padding: 44px;
+  }
+  @media (max-width: 640px) { .install-panel { padding: 30px 22px; } }
+  .install-panel .section-head h2 { color: var(--paper); }
+  .install-panel .section-head p { color: #B7BBCB; }
+  .install-panel .eyebrow { color: #E8A489; }
+  .install-panel .eyebrow::before { background: #E8A489; }
+
+  ol.install-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+  ol.install-list li {
+    display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start;
+  }
+  .step-circle {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid #454A63;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: #E8A489;
+  }
+  ol.install-list h4 { margin: 2px 0 6px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; }
+  ol.install-list p { margin: 0; color: #B7BBCB; font-size: 14.5px; }
+  ol.install-list code {
+    font-family: 'JetBrains Mono', monospace; background: #1D2236; padding: 2px 7px; border-radius: 4px; font-size: 13px;
+  }
+
+  .install-panel .btn-primary { background: var(--paper); color: var(--ink); margin-top: 32px; }
+
+  /* ---------- HONESTY ---------- */
+  .honesty {
+    display: grid; grid-template-columns: 160px 1fr; gap: 28px; align-items: start;
+    background: var(--paper-dim); border: 1px solid var(--line); border-radius: 14px; padding: 30px 32px;
+  }
+  @media (max-width: 640px) { .honesty { grid-template-columns: 1fr; } }
+  .honesty-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--slate); padding-top: 4px; }
+  .honesty-body p { margin: 0 0 12px; color: #33364a; font-size: 15px; }
+  .honesty-body p:last-child { margin-bottom: 0; }
+
+  /* ---------- FOOTER ---------- */
+  footer { padding: 40px 0 60px; }
+  footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  footer p { font-size: 13px; color: var(--slate); margin: 0; font-family: 'JetBrains Mono', monospace; }
+  footer a { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<nav class="wrap">
+  <div class="brand">
+    <span class="brand-mark">🔍</span>
+    Разбор манипуляций
+  </div>
+  <a class="cta-small" href="#install">Установить</a>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Расширение для Chrome</div>
+      <h1 class="headline">Читаешь новость.<br>Расширение читает <em>её достоверность</em>.</h1>
+      <p class="sub">Плавающая кнопка на любой странице проверяет текст или ссылку на признаки ложной и непроверяемой информации — прямо там, где вы читаете, без переключения вкладок.</p>
+      <div class="cta-row">
+        <a class="btn-primary" href="https://github.com/Isko-1/custdev/releases/download/v1.0.0/factcheck-extension.zip">Скачать расширение ↓</a>
+        <a class="btn-secondary" href="#how">Как это работает</a>
+      </div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-source"><span>news-portal.kz</span><span>сегодня, 09:41</span></div>
+      <div class="doc-body">
+        Власти сообщили, что <span class="flag">новый закон вступит в силу уже завтра</span> — источники в министерстве утверждают, что <span class="flag">решение принято без публичного обсуждения</span>. Эксперты советуют действовать немедленно.
+      </div>
+      <div class="doc-verdict">
+        <span class="stamp-badge">⚠ ВЕРОЯТНЕЕ ВСЕГО ФЕЙК</span>
+        <p>2 утверждения без подтверждаемого источника. Официального текста закона не найдено.<br><em>⟳ Оценка по вероятности — сверьте с независимым источником.</em></p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Как это работает</div>
+      <h2>Три шага, без регистрации и без ввода данных</h2>
+      <p>Расширение не хранит историю проверок и не требует аккаунта — оно просто отправляет текст на анализ и показывает результат.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Открываете панель</h3>
+        <p>Кнопка 🔍 внизу справа на любой странице. Нажимаете «Проверить эту страницу» — или вставляете свой текст/ссылку вручную.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>ИИ ищет фактические утверждения</h3>
+        <p>Модель выделяет проверяемые заявления — цифры, даты, цитаты — и сверяет их с тем, что ей известно. Мнения и оценки не трогает.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Получаете разбор, не вердикт</h3>
+        <p>Список конкретных подозрительных мест и совет, где проверить самостоятельно — решение всегда остаётся за вами.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <div class="install-panel">
+      <div class="section-head">
+        <div class="eyebrow">Установка · 2 минуты</div>
+        <h2>Пока не в Chrome Web Store — ставится вручную</h2>
+        <p>Расширение в разработке и ещё не прошло публикацию в официальном магазине. Установка через режим разработчика занимает пару минут и абсолютно безопасна — вы просто указываете Chrome папку с файлами.</p>
+      </div>
+
+      <ol class="install-list">
+        <li>
+          <span class="step-circle">1</span>
+          <div>
+            <h4>Скачайте и распакуйте архив</h4>
+            <p>Кнопка выше скачивает ZIP с исходным кодом. Распакуйте его в любое удобное место.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-circle">2</span>
+          <div>
+            <h4>Откройте страницу расширений</h4>
+            <p>В адресной строке Chrome введите <code>chrome://extensions</code> и включите переключатель «Режим разработчика» в правом верхнем углу.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-circle">3</span>
+          <div>
+            <h4>Загрузите распакованное расширение</h4>
+            <p>Нажмите «Загрузить распакованное расширение» и выберите папку, в которую распаковали архив, — файлы уже лежат прямо в её корне.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-circle">4</span>
+          <div>
+            <h4>Готово</h4>
+            <p>Обновите любую открытую вкладку — внизу справа появится кнопка 🔍.</p>
+          </div>
+        </li>
+      </ol>
+
+      <a class="btn-primary" href="https://github.com/Isko-1/custdev/releases/download/v1.0.0/factcheck-extension.zip">Скачать архив ↓</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Честно о границах</div>
+      <h2>Чего расширение не умеет</h2>
+    </div>
+
+    <div class="honesty">
+      <div class="honesty-label">Ограничения</div>
+      <div class="honesty-body">
+        <p>Модель проверяет факты по своим внутренним знаниям, а не через поиск в реальном времени в интернете. Если новость произошла совсем недавно, расширение честно скажет «невозможно проверить» вместо того, чтобы гадать.</p>
+        <p>Это инструмент для быстрой ориентировки, а не замена журналистской проверке или официальным источникам. Итоговое решение — доверять тексту или нет — всегда за читателем.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Разбор манипуляций · открытый исходный код</p>
+    <p><a href="https://github.com/Isko-1/custdev">Репозиторий на GitHub ↗</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
